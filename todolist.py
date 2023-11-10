@@ -94,7 +94,7 @@ class ToDoApp:
             return
 
         selected_task = tasks[0] if len(tasks) == 1 else self.show_task_selection_dialog(tasks)
-        
+
         if selected_task:
             self.todo_list.delete_task(selected_task)
             messagebox.showinfo("Success", "Task deleted successfully.")
@@ -110,7 +110,13 @@ class ToDoApp:
         for task in tasks:
             tasks_text += f"Title: {task.title}\nDescription: {task.description}\nStatus: {task.status}\n\n"
 
-        messagebox.showinfo("Tasks", tasks_text)
+        # Displaying tasks in a scrollable text box
+        tasks_window = tk.Toplevel(self.root)
+        tasks_window.title("Current Tasks")
+        tasks_textbox = tk.Text(tasks_window, wrap="word", height=20, width=40)
+        tasks_textbox.pack(padx=10, pady=10)
+        tasks_textbox.insert(tk.END, tasks_text)
+        tasks_textbox.config(state=tk.DISABLED)  # Make the text box read-only
 
     def save_tasks(self):
         self.todo_list.save_tasks()
@@ -119,13 +125,18 @@ class ToDoApp:
     def load_tasks(self):
         self.todo_list.load_tasks()
         messagebox.showinfo("Success", "Tasks loaded successfully.")
+        print("Loaded Tasks:", self.todo_list.view_tasks())
 
     def show_task_selection_dialog(self, tasks):
         selected_task = None
 
         def on_select():
             nonlocal selected_task
-            selected_task = tasks_listbox.get(tk.ACTIVE)
+            try:
+                selected_task_index = tasks_listbox.curselection()[0]
+                selected_task = tasks[selected_task_index]
+            except IndexError:
+                pass
             dialog.destroy()
 
         dialog = tk.Toplevel(self.root)
@@ -144,8 +155,7 @@ class ToDoApp:
         dialog.grab_set()
         self.root.wait_window(dialog)
 
-        selected_task_index = tasks_listbox.curselection()
-        return tasks[selected_task_index[0]] if selected_task_index else None
+        return selected_task
 
 if __name__ == "__main__":
     root = tk.Tk()
